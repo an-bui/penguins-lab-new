@@ -1,0 +1,62 @@
+---
+title: "Penguin lab - flipper lengths, ANOVA"
+author: "An Bui"
+date: "07 November 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### 1. Set up.
+```{r set up code, message = FALSE}
+library(tidyverse)
+library(car)
+library(onewaytests)
+
+penguins <- read_csv("penguins.csv")
+```
+
+#### 2. Introductory data wrangling.
+**Question: is there a significant difference in mean flipper lengths for female Chinstrap, Gentoo, and Adelie penguins near Palmer Archepelago?**  
+One factor: species (penguins)  
+Levels: 3 (Chinstrap, Gentoo, Adelie)  
+Continuous random variable: flipper length  
+This means you can use a **one-way ANOVA.**  
+
+Assume:  
+- independent observations  
+- equal variance (Levene's test)  
+- normality (histograms/qqplots)  
+
+First, count up your data.
+```{r count data using with()}
+# with dataset penguins, create a table of counts
+counts <- with(penguins, table(Species, Sex))
+```
+Seems like there are >30 samples, so you can use CLT to justify an ANOVA.
+
+```{r}
+# create a new data frame from penguins
+penguins2 <- penguins %>% 
+  # add a new column using mutate
+  mutate(
+    # call that column common_name
+    common_name = 
+      # use case_when for common names of penguins to match with the other column of both scientific and common
+      case_when(
+        Species == "Chinstrap penguin (Pygoscelis antarctica)" ~ "Chinstrap",
+        Species == "Gentoo penguin (Pygoscelis papua)" ~ "Gentoo",
+        Species == "Adelie Penguin (Pygoscelis adeliae)" ~ "Adelie"
+      )
+  ) %>% 
+  # retain all columns except Species
+  select(-Species) %>% 
+  # filter for female penguins
+  filter(Sex == "FEMALE")
+```
+
+
+
+
