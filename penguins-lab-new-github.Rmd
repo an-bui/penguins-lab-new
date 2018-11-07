@@ -59,18 +59,67 @@ penguins2 <- penguins %>%
 
 Now, make some exploratory graphs.
 ```{r histogram}
-penguins_hist <- ggplot(penguins2, aes(x = )) +
-  geom_histogram(aes(fill = common_name))
+penguins_hist <- ggplot(penguins2, aes(x = flipper_length)) +
+  geom_histogram(aes(fill = common_name),
+                 bins = 8) +
+  facet_wrap (~ common_name) +
+  theme_bw() +
+  labs(x = "Flipper length (mm)", y = "Frequency (n = ?)")
 
 penguins_hist
 ```
-```{r}
+
+```{r penguins qqplot}
 penguins_qq <- ggplot(penguins2, aes(sample = flipper_length)) +
-  geom_qq()
+  geom_qq() +
+  facet_wrap(~ common_name) +
+  theme_bw()
 
 penguins_qq
 ```
+Based on qqplots and histograms, observations for each group seems normally distributed. Also, n > 30 so means will be normally distributed by CLT.  
 
+Then, test for equal variances. If the largest sample variance is < 4x greater than the samllest sample variance, then these are "close enough" to consider variances equal.
+```{r test for variances}
+# new data frame from penguins
+variances <- penguins2 %>% 
+  # group by species
+  group_by(common_name) %>% 
+  summarize(
+    variance = var(flipper_length)
+  )
+```
+Largest variance (33) is not more than 4x greater than the smallest variance (15).
 
+Then, use a Levene's test (in `car` package).  
+**H~0~:** No difference in variances.  
+**H~A~:** Variances are _not_ equal.
+```{r Levene test}
+# do a Levene's test
+levene_penguin <- leveneTest(flipper_length ~ common_name, data = penguins2)
+
+levene_penguin
+```
+There is no significant difference in variances across species. Therefore, you can do a one-way ANOVA.
+
+#### 3. ANOVA and post-hoc testing
+**H~0~:** All means are the same.
+**H~A~:** At least two means are different.
+```{r ANOVA}
+# compare means of random variable flipper_length based on common_name
+penguin_aov <- aov(flipper_length ~ common_name, data = penguins2)
+
+# use summary() to get outcome of aov()
+summary(penguin_aov)
+```
+So, at least two means are different. But which ones are actually different? Use a post-hoc Tukey's HSD.
+```{r}
+# do a Tukey's HSD on your ANOVA
+penguin_ph <- TukeyHSD(penguin_aov)
+penguin_ph
+```
+In every pairwise comparison, means are different.  
+**Statement:** Mean flipper lengths of female penguins differ signficantly for all species studied (one-way ANOVA, F(df) = statistic, p < 0.001, $\alpha$ = 0.05 with post-hoc Tukey's HSD, $\alpha$ = 0.05).  
+`aov.test()` function in `onewaytests` package allows inline references, not `aov()`.
 
 
