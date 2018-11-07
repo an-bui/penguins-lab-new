@@ -30,14 +30,14 @@ Assume:
 - equal variance (Levene's test)  
 - normality (histograms/qqplots)  
 
-First, count up your data.
+Figure out of your data fulfill these assumptions. First, count up your data.
 ```{r count data using with()}
 # with dataset penguins, create a table of counts
 counts <- with(penguins, table(Species, Sex))
 ```
 Seems like there are >30 samples, so you can use CLT to justify an ANOVA.
 
-```{r}
+```{r simplify data frame to use}
 # create a new data frame from penguins
 penguins2 <- penguins %>% 
   # add a new column using mutate
@@ -55,6 +55,20 @@ penguins2 <- penguins %>%
   select(-Species) %>% 
   # filter for female penguins
   filter(Sex == "FEMALE")
+```
+
+Now, make some exploratory graphs.
+```{r histogram}
+penguins_hist <- ggplot(penguins2, aes(x = )) +
+  geom_histogram(aes(fill = common_name))
+
+penguins_hist
+```
+```{r}
+penguins_qq <- ggplot(penguins2, aes(sample = flipper_length)) +
+  geom_qq()
+
+penguins_qq
 ```
 
 
